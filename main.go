@@ -118,17 +118,33 @@ func unlockInstances() {
 }
 
 func unlockInstance(instanceId *string) {
+  modifyApiTermination(instanceId, false)
+  modifyDeleteOnTermination(instanceId, true)
+}
+
+func lockInstances() {
+  if len(instances) > 0 {
+    for _, instance := range instances {
+      lockInstance(instance)
+    }
+
+    fmt.Printf("Success: locked %v instance(s)\n", len(instances))
+  } else {
+    fmt.Println("No instances found")
+  }
+  os.Exit(0)
+}
+
+func lockInstance(instanceId *string) {
+  modifyApiTermination(instanceId, true)
+  modifyDeleteOnTermination(instanceId, false)
+}
+
+func modifyApiTermination(instanceId *string, b bool) {
+
   input := &awsec2.ModifyInstanceAttributeInput{
     DisableApiTermination: &awsec2.AttributeBooleanValue{
-      Value: aws.Bool(false),
-    },
-    BlockDeviceMappings: []*awsec2.InstanceBlockDeviceMappingSpecification{
-      &awsec2.InstanceBlockDeviceMappingSpecification{
-        DeviceName: aws.String("/dev/sda1"),
-        Ebs: &awsec2.EbsInstanceBlockDeviceSpecification{
-          DeleteOnTermination: aws.Bool(true),
-        },
-      },
+      Value: aws.Bool(b),
     },
     InstanceId: instanceId,
     DryRun: aws.Bool(true),
@@ -155,29 +171,14 @@ func unlockInstance(instanceId *string) {
   }
 }
 
-func lockInstances() {
-  if len(instances) > 0 {
-    for _, instance := range instances {
-      lockInstance(instance)
-    }
+func modifyDeleteOnTermination(instanceId *string, b bool) {
 
-    fmt.Printf("Success: locked %v instance(s)\n", len(instances))
-  } else {
-    fmt.Println("No instances found")
-  }
-  os.Exit(0)
-}
-
-func lockInstance(instanceId *string) {
   input := &awsec2.ModifyInstanceAttributeInput{
-    DisableApiTermination: &awsec2.AttributeBooleanValue{
-      Value: aws.Bool(true),
-    },
     BlockDeviceMappings: []*awsec2.InstanceBlockDeviceMappingSpecification{
       &awsec2.InstanceBlockDeviceMappingSpecification{
         DeviceName: aws.String("/dev/sda1"),
         Ebs: &awsec2.EbsInstanceBlockDeviceSpecification{
-          DeleteOnTermination: aws.Bool(false),
+          DeleteOnTermination: aws.Bool(b),
         },
       },
     },

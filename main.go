@@ -3,6 +3,7 @@ package main
 import (
   "fmt"
   "os"
+  "strings"
   flag "github.com/ogier/pflag"
   aws "github.com/aws/aws-sdk-go/aws"
   awserr "github.com/aws/aws-sdk-go/aws/awserr"
